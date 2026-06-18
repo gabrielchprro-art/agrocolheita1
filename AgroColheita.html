@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AgroColheita – Safra 2026</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="AgroColheita"/>
+<meta name="theme-color" content="#f59e0b"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #080c10;
+    --surface: #111820;
+    --border: #1e2d3d;
+    --gold: #f59e0b;
+    --green: #22c55e;
+    --blue: #3b82f6;
+    --orange: #f97316;
+    --purple: #a855f7;
+    --pink: #ec4899;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --subtle: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+  /* SIDEBAR */
+  aside {
+    width: 230px; background: var(--bg2); display: flex; flex-direction: column;
+    padding: 24px 0; border-right: 1px solid var(--border); flex-shrink: 0; position: fixed;
+    top: 0; left: 0; height: 100vh; z-index: 10;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; padding: 0 20px 24px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+  .logo-icon { font-size: 32px; }
+  .logo-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; color: var(--gold); letter-spacing: 0.5px; }
+  .logo-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  nav { display: flex; flex-direction: column; gap: 4px; padding: 0 12px; }
+  .nav-btn {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px;
+    border: none; background: transparent; color: var(--muted); cursor: pointer; font-size: 14px;
+    font-family: 'Inter', sans-serif; text-align: left; transition: all 0.15s; width: 100%;
+  }
+  .nav-btn:hover { color: var(--text); background: #1a2535; }
+  .nav-btn.active { background: #1e2d3d; color: var(--gold); font-weight: 600; }
+  .side-footer { margin-top: auto; padding: 16px 20px 0; border-top: 1px solid var(--border); }
+  .side-footer span { font-size: 11px; color: #334155; }
+
+  /* MAIN */
+  main { margin-left: 230px; flex: 1; display: flex; flex-direction: column; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 32px; border-bottom: 1px solid var(--border); background: var(--bg2);
+    position: sticky; top: 0; z-index: 5;
+  }
+  .header-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: #f8fafc; }
+  .header-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .header-actions { display: flex; gap: 10px; }
+
+  /* CONTENT */
+  .content { padding: 28px 32px; overflow-y: auto; }
+
+  /* TABS */
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  /* CARDS */
+  .cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 32px; }
+  .card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 22px; flex: 1 1 140px; min-width: 130px;
+  }
+  .card-icon { font-size: 24px; margin-bottom: 10px; }
+  .card-value { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; line-height: 1; }
+  .card-unit { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .card-label { font-size: 12px; color: var(--subtle); margin-top: 8px; }
+
+  /* SECTION TITLE */
+  .section-title { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; margin-top: 28px; }
+
+  /* TALHAO GRID */
+  .talhao-grid { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .talhao-card {
+    background: var(--bg2); border: 1px solid var(--border); border-left: 4px solid var(--purple);
+    border-radius: 10px; padding: 14px 18px; min-width: 160px;
+  }
+  .talhao-nome { font-size: 13px; font-weight: 700; color: #c4b5fd; margin-bottom: 6px; }
+  .talhao-kg { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--text); }
+  .talhao-viagens { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); background: var(--bg2); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    padding: 12px 14px; text-align: left; color: var(--muted); font-weight: 600;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 1px solid var(--border); background: var(--bg2); white-space: nowrap;
+  }
+  td { padding: 12px 14px; color: #cbd5e1; vertical-align: middle; border-bottom: 1px solid #111820; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #0f1923; }
+  .badge { background: #1e2d3d; color: var(--gold); border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: 700; letter-spacing: 1px; font-family: 'DM Mono', monospace; }
+  .nf { color: #60a5fa; font-family: 'DM Mono', monospace; font-size: 13px; }
+  .talhao-tag { background: #2d1b69; color: #c4b5fd; border-radius: 6px; padding: 3px 8px; font-size: 12px; font-weight: 600; }
+  .pill { background: #14532d; color: #4ade80; border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; }
+  .empty { padding: 40px; text-align: center; color: var(--muted); font-size: 14px; }
+
+  /* BUTTONS */
+  .btn-primary { background: var(--gold); color: #0a1018; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'Inter', sans-serif; transition: opacity 0.15s; }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-excel { background: #16a34a; color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: 'Inter', sans-serif; transition: opacity 0.15s; }
+  .btn-excel:hover { opacity: 0.85; }
+  .btn-secondary { background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 10px 20px; font-size: 14px; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-secondary:hover { color: var(--text); }
+  .btn-danger { background: #7f1d1d; color: #fca5a5; border: none; border-radius: 6px; padding: 4px 10px; font-size: 12px; cursor: pointer; font-family: 'Inter', sans-serif; }
+
+  /* MODAL */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+  .overlay.open { display: flex; }
+  .modal {
+    background: #0f1923; border: 1px solid var(--border); border-radius: 16px;
+    width: 92%; max-width: 660px; box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: #f8fafc; }
+  .close-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 4px; line-height: 1; }
+  .modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; padding: 16px 24px; border-top: 1px solid var(--border); }
+
+  /* FORM */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
+  input, select {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif;
+    outline: none; width: 100%; transition: border-color 0.15s;
+  }
+  input:focus, select:focus { border-color: var(--gold); }
+  select option { background: #0d1117; }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 28px; right: 28px; background: #14532d; color: #4ade80;
+    border: 1px solid #166534; border-radius: 10px; padding: 12px 20px; font-size: 13px;
+    font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 999;
+    opacity: 0; transform: translateY(12px); transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  .btn-limpar { background: #7f1d1d; color: #fca5a5; border: none; border-radius: 8px; padding: 10px 16px; font-size: 13px; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-limpar:hover { background: #991b1b; }
+  .tara-box { display: flex; justify-content: space-between; align-items: center; background: #1a1000; border: 1px solid var(--orange); border-radius: 10px; padding: 10px 16px; margin-top: 4px; }
+  .tara-label { font-size: 11px; color: var(--orange); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+  .tara-value { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: #fb923c; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside>
+  <div class="logo">
+    <span class="logo-icon">🌽</span>
+    <div>
+      <div class="logo-title">AgroColheita</div>
+      <div class="logo-sub">Safra 2026</div>
+    </div>
+  </div>
+  <nav>
+    <button class="nav-btn active" onclick="showTab('dashboard',this)">📊 Dashboard</button>
+    <button class="nav-btn" onclick="showTab('viagens',this)">🚛 Viagens</button>
+    <button class="nav-btn" onclick="showTab('contratos',this)">📋 Contratos</button>
+    <button class="nav-btn" onclick="showTab('glebas',this)">🌾 Glebas / Talhões</button>
+    <button class="nav-btn" onclick="showTab('armazens',this)">🏭 Armazéns</button>
+    <button class="nav-btn" onclick="showTab('veiculos',this)">🚗 Veículos</button>
+    <button class="nav-btn" onclick="showTab('motoristas',this)">👤 Motoristas</button>
+  </nav>
+  <div class="side-footer">
+    <span>Milho · Campanha Junho/26</span>
+    <br/><br/>
+    <button id="btnInstalar" onclick="instalarApp()" style="display:none;width:100%;margin-top:8px;background:#1e3a5f;color:#60a5fa;border:none;border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;align-items:center;justify-content:center;gap:6px">
+  📲 Instalar App
+</button>
+<button class="btn-limpar" onclick="limparDados()" style="width:100%;margin-top:4px">🗑️ Limpar todos os dados</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main>
+  <header>
+    <div>
+      <div class="header-title" id="headerTitle">Dashboard</div>
+      <div class="header-sub" id="headerSub">Resumo geral da safra</div>
+    </div>
+    <div class="header-actions" id="headerActions">
+      <button class="btn-excel" onclick="exportarExcel()">📥 Exportar Excel</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="tab active">
+      <div class="cards" id="dashCards"></div>
+      <div id="talhaoSection"></div>
+      <div class="section-title">Últimas Viagens</div>
+      <div class="table-wrap" id="dashTabela"></div>
+    </div>
+
+    <!-- VIAGENS -->
+    <div id="tab-viagens" class="tab">
+      <!-- Barra de filtros -->
+      <div id="filtroBar" style="background:#0a1018;border:1px solid #1e2d3d;border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+        <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px">
+          <label style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.8px">Placa</label>
+          <select id="filtroPlaca" onchange="aplicarFiltros()" style="background:#0d1117;border:1px solid #1e2d3d;border-radius:8px;padding:8px 10px;color:#e2e8f0;font-size:13px;font-family:inherit">
+            <option value="">Todas as placas</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px">
+          <label style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.8px">Gleba / Talhão</label>
+          <select id="filtroTalhao" onchange="aplicarFiltros()" style="background:#0d1117;border:1px solid #1e2d3d;border-radius:8px;padding:8px 10px;color:#e2e8f0;font-size:13px;font-family:inherit">
+            <option value="">Todas as glebas</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px">
+          <label style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.8px">Armazém</label>
+          <select id="filtroArmazem" onchange="aplicarFiltros()" style="background:#0d1117;border:1px solid #1e2d3d;border-radius:8px;padding:8px 10px;color:#e2e8f0;font-size:13px;font-family:inherit">
+            <option value="">Todos os armazéns</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:150px">
+          <label style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.8px">Contrato</label>
+          <select id="filtroContrato" onchange="aplicarFiltros()" style="background:#0d1117;border:1px solid #1e2d3d;border-radius:8px;padding:8px 10px;color:#e2e8f0;font-size:13px;font-family:inherit">
+            <option value="">Todos os contratos</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px">
+          <label style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.8px">Data início</label>
+          <input type="date" id="filtroDataInicio" onchange="aplicarFiltros()" style="background:#0d1117;border:1px solid #1e2d3d;border-radius:8px;padding:8px 10px;color:#e2e8f0;font-size:13px;font-family:inherit"/>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px">
+          <label style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.8px">Data fim</label>
+          <input type="date" id="filtroDataFim" onchange="aplicarFiltros()" style="background:#0d1117;border:1px solid #1e2d3d;border-radius:8px;padding:8px 10px;color:#e2e8f0;font-size:13px;font-family:inherit"/>
+        </div>
+        <button onclick="limparFiltros()" style="background:#1e2d3d;color:#94a3b8;border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;align-self:flex-end">✕ Limpar</button>
+      </div>
+      <!-- Resumo do filtro -->
+      <div id="filtroResumo" style="display:none;background:#0a1018;border:1px solid #1e2d3d;border-radius:10px;padding:12px 18px;margin-bottom:14px;display:flex;gap:20px;flex-wrap:wrap;align-items:center">
+        <span id="filtroResumoTexto" style="font-size:13px;color:#94a3b8"></span>
+        <span id="filtroResumoKg" style="font-size:13px;color:#22c55e;font-weight:700"></span>
+        <span id="filtroResumoSacas" style="font-size:13px;color:#60a5fa;font-weight:700"></span>
+      </div>
+      <div class="table-wrap" id="viagensTabela"></div>
+    </div>
+
+    <!-- CONTRATOS -->
+    <div id="tab-contratos" class="tab">
+      <div id="contratosCards" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px"></div>
+      <div class="table-wrap" id="contratosTabela"></div>
+    </div>
+
+    <!-- GLEBAS -->
+    <div id="tab-glebas" class="tab">
+      <div class="table-wrap" id="glebasTabela"></div>
+    </div>
+
+    <!-- ARMAZÉNS -->
+    <div id="tab-armazens" class="tab">
+      <div class="table-wrap" id="armazensTabela"></div>
+    </div>
+
+    <!-- VEÍCULOS -->
+    <div id="tab-veiculos" class="tab">
+      <div class="table-wrap" id="veiculosTabela"></div>
+    </div>
+
+    <!-- MOTORISTAS -->
+    <div id="tab-motoristas" class="tab">
+      <div class="table-wrap" id="motoristasTabela"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- MODAL VIAGEM -->
+<div class="overlay" id="modalViagem">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <span class="modal-title">🚛 Lançar Viagem</span>
+      <button class="close-btn" onclick="fecharModal('modalViagem')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid2">
+        <div class="field"><label>Placa do Veículo</label><select id="vPlaca"></select></div>
+        <div class="field"><label>Motorista</label><select id="vMotorista"></select></div>
+        <div class="field"><label>Talhão / Gleba de Origem</label><select id="vTalhao"></select></div>
+        <div class="field"><label>Armazém de Destino</label><select id="vArmazem" onchange="onArmazemChange()"></select></div>
+        <div class="field">
+          <label>Peso Bruto (kg)</label>
+          <input type="number" id="vPesoBruto" placeholder="Ex: 28500" oninput="recalcular()"/>
+        </div>
+        <div class="field">
+          <label>Umidade do Grão (%)</label>
+          <input type="number" id="vUmidade" placeholder="Ex: 16.5" step="0.1" min="14" max="27" oninput="recalcular()"/>
+          <span id="umidadeHint" style="font-size:11px;margin-top:3px;display:block"></span>
+        </div>
+        <div class="field">
+          <label>Desconto Umidade (%)</label>
+          <input type="number" id="vDesconto" placeholder="Auto pela umidade" step="0.01" min="0" max="100" oninput="recalcular()" style="color:#f87171"/>
+          <span style="font-size:11px;color:#64748b;margin-top:3px">Automático ou ajuste manual</span>
+        </div>
+        <div class="field">
+          <label>Peso Líquido (kg) <span style="color:#22c55e;font-size:10px">● calculado</span></label>
+          <input type="number" id="vPesoLiquido" placeholder="Calculado automaticamente" readonly
+            style="color:#4ade80;font-weight:700;background:#081510;border-color:#1a3a25;cursor:not-allowed"/>
+          <span style="font-size:11px;color:#22c55e;margin-top:3px">Peso bruto − desconto de umidade</span>
+        </div>
+        <div class="field">
+          <label>Contrato</label>
+          <select id="vContrato" onchange="onContratoChange()">
+            <option value="">Sem contrato</option>
+          </select>
+          <span id="contratoHint" style="font-size:11px;margin-top:3px;display:block"></span>
+        </div>
+        <div class="field"><label>Observação</label><input type="text" id="vObs" placeholder="Referência adicional (opcional)"/></div>
+        <div class="field"><label>Nota Fiscal</label><input type="text" id="vNF" placeholder="Ex: NF-000456"/></div>
+        <div class="field"><label>Data da Descarga</label><input type="date" id="vData"/></div>
+      </div>
+      <!-- Cards de resumo dos cálculos -->
+      <div id="taraBox" style="display:none;gap:10px;flex-wrap:wrap;margin-top:10px">
+        <div class="tara-box" style="flex:1;min-width:120px">
+          <span class="tara-label">Peso Bruto</span>
+          <span class="tara-value" id="resumoBruto" style="color:#94a3b8">—</span>
+        </div>
+        <div class="tara-box" id="umidadeBox" style="flex:1;min-width:120px;border-color:#f87171;background:#1c0a0a;display:none">
+          <span class="tara-label" style="color:#f87171">Desc. Umidade</span>
+          <span class="tara-value" style="color:#f87171" id="descontoValorKg">—</span>
+        </div>
+        <div class="tara-box" style="flex:1;min-width:120px;border-color:#22c55e;background:#081510">
+          <span class="tara-label" style="color:#22c55e">Peso Líquido</span>
+          <span class="tara-value" style="color:#4ade80" id="resumoLiquido">—</span>
+        </div>
+        <div class="tara-box" id="sacasBox" style="flex:1;min-width:120px;border-color:#f59e0b;background:#110d00;display:none">
+          <span class="tara-label" style="color:#f59e0b">Sacas (60 kg)</span>
+          <span class="tara-value" style="color:#fbbf24" id="resumoSacas">—</span>
+        </div>
+      </div>
+      <!-- Barra de progresso do contrato -->
+      <div id="contratoProgressBox" style="display:none;background:#0a1018;border:1px solid #1e2d3d;border-radius:10px;padding:14px 16px;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px">Progresso do Contrato</span>
+          <span id="cpNumero" style="font-size:12px;color:#f59e0b;font-family:monospace"></span>
+        </div>
+        <div style="background:#1e2d3d;border-radius:6px;height:12px;overflow:hidden;margin-bottom:8px">
+          <div id="cpBarra" style="height:100%;border-radius:6px;transition:width 0.3s"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px">
+          <span id="cpEntregue" style="color:#94a3b8"></span>
+          <span id="cpRestante" style="font-weight:700"></span>
+          <span id="cpMeta" style="color:#64748b"></span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal('modalViagem')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarViagem()">Salvar Viagem</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR VIAGEM -->
+<div class="overlay" id="modalEditarViagem">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <span class="modal-title">✏️ Editar Viagem</span>
+      <button class="close-btn" onclick="fecharModal('modalEditarViagem')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="evId"/>
+      <div class="grid2">
+        <div class="field"><label>Placa do Veículo</label><select id="evPlaca"></select></div>
+        <div class="field"><label>Motorista</label><select id="evMotorista"></select></div>
+        <div class="field"><label>Talhão / Gleba de Origem</label><select id="evTalhao"></select></div>
+        <div class="field"><label>Armazém de Destino</label><select id="evArmazem"></select></div>
+        <div class="field">
+          <label>Peso Bruto (kg)</label>
+          <input type="number" id="evPesoBruto" placeholder="Ex: 28500" oninput="recalcularEdit()"/>
+        </div>
+        <div class="field">
+          <label>Umidade do Grão (%)</label>
+          <input type="number" id="evUmidade" placeholder="Ex: 16.5" step="0.1" oninput="recalcularEdit()"/>
+          <span id="evUmidadeHint" style="font-size:11px;margin-top:3px;display:block"></span>
+        </div>
+        <div class="field">
+          <label>Desconto Umidade (%)</label>
+          <input type="number" id="evDesconto" placeholder="Auto pela umidade" step="0.01" min="0" max="100" oninput="recalcularEdit()" style="color:#f87171"/>
+        </div>
+        <div class="field">
+          <label>Peso Líquido (kg) <span style="color:#22c55e;font-size:10px">● calculado</span></label>
+          <input type="number" id="evPesoLiquido" readonly
+            style="color:#4ade80;font-weight:700;background:#081510;border-color:#1a3a25;cursor:not-allowed"/>
+        </div>
+        <div class="field">
+          <label>Contrato</label>
+          <select id="evContrato">
+            <option value="">Sem contrato</option>
+          </select>
+        </div>
+        <div class="field"><label>Observação</label><input type="text" id="evObs" placeholder="Referência adicional"/></div>
+        <div class="field"><label>Nota Fiscal</label><input type="text" id="evNF" placeholder="Ex: NF-000456"/></div>
+        <div class="field"><label>Data da Descarga</label><input type="date" id="evData"/></div>
+      </div>
+      <div id="evResumoBox" style="display:none;gap:10px;flex-wrap:wrap;margin-top:10px">
+        <div class="tara-box" style="flex:1;min-width:120px">
+          <span class="tara-label">Peso Bruto</span>
+          <span class="tara-value" id="evResumoBruto" style="color:#94a3b8">—</span>
+        </div>
+        <div class="tara-box" id="evDescontoBox" style="flex:1;min-width:120px;border-color:#f87171;background:#1c0a0a;display:none">
+          <span class="tara-label" style="color:#f87171">Desc. Umidade</span>
+          <span class="tara-value" style="color:#f87171" id="evDescontoKg">—</span>
+        </div>
+        <div class="tara-box" style="flex:1;min-width:120px;border-color:#22c55e;background:#081510">
+          <span class="tara-label" style="color:#22c55e">Peso Líquido</span>
+          <span class="tara-value" style="color:#4ade80" id="evResumoLiquido">—</span>
+        </div>
+        <div class="tara-box" id="evSacasBox" style="flex:1;min-width:120px;border-color:#f59e0b;background:#110d00;display:none">
+          <span class="tara-label" style="color:#f59e0b">Sacas (60 kg)</span>
+          <span class="tara-value" style="color:#fbbf24" id="evResumoSacas">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal('modalEditarViagem')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarEdicaoViagem()">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONTRATO -->
+<div class="overlay" id="modalContrato">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title">📋 Cadastrar Contrato</span>
+      <button class="close-btn" onclick="fecharModal('modalContrato')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid2">
+        <div class="field"><label>Número do Contrato</label><input type="text" id="cNumero" placeholder="Ex: CONT-2026-001"/></div>
+        <div class="field"><label>Armazém / Comprador</label><select id="cArmazem"></select></div>
+        <div class="field">
+          <label>Meta de Entrega (sacas 60kg)</label>
+          <input type="number" id="cMetaSacas" placeholder="Ex: 30000" min="1" oninput="calcMetaKg()"/>
+        </div>
+        <div class="field">
+          <label>Equivalente em kg</label>
+          <input type="number" id="cMetaKg" placeholder="Calculado automático" style="color:#f59e0b" readonly/>
+        </div>
+        <div class="field"><label>Data de Início</label><input type="date" id="cDataInicio"/></div>
+        <div class="field"><label>Data de Vencimento</label><input type="date" id="cDataFim"/></div>
+      </div>
+      <div class="field"><label>Observações</label><input type="text" id="cObs" placeholder="Opcional"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal('modalContrato')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarContrato()">Salvar Contrato</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ARMAZÉM -->
+<div class="overlay" id="modalArmazem">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <span class="modal-title">🏭 Cadastrar Armazém</span>
+      <button class="close-btn" onclick="fecharModal('modalArmazem')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Nome do Armazém</label><input type="text" id="aNome" placeholder="Ex: Armazém Central – Rondonópolis/MT"/></div>
+      <div class="grid2">
+        <div class="field">
+          <label>Desconto padrão (%)</label>
+          <input type="number" id="aDesconto" placeholder="Ex: 1.5" step="0.01" min="0" max="100"/>
+          <span style="font-size:11px;color:#64748b;margin-top:4px">0 = armazém não desconta</span>
+        </div>
+        <div class="field"><label>Cidade / UF</label><input type="text" id="aCidade" placeholder="Ex: Sorriso/MT"/></div>
+      </div>
+      <div class="field"><label>Observações</label><input type="text" id="aObs" placeholder="Opcional"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal('modalArmazem')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarArmazem()">Salvar Armazém</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR ARMAZÉM -->
+<div class="overlay" id="modalEditarArmazem">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <span class="modal-title">✏️ Editar Armazém</span>
+      <button class="close-btn" onclick="fecharModal('modalEditarArmazem')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="eaId"/>
+      <div class="field"><label>Nome do Armazém</label><input type="text" id="eaNome"/></div>
+      <div class="grid2">
+        <div class="field">
+          <label>Desconto padrão (%)</label>
+          <input type="number" id="eaDesconto" step="0.01" min="0" max="100"/>
+          <span style="font-size:11px;color:#64748b;margin-top:4px">0 = armazém não desconta</span>
+        </div>
+        <div class="field"><label>Cidade / UF</label><input type="text" id="eaCidade"/></div>
+      </div>
+      <div class="field"><label>Observações</label><input type="text" id="eaObs"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal('modalEditarArmazem')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarEdicaoArmazem()">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GLEBA -->
+<div class="overlay" id="modalGleba">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title">🌾 Cadastrar Gleba / Talhão</span>
+      <button class="close-btn" onclick="fecharModal('modalGleba')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Nome da Gleba / Talhão</label><input type="text" id="gNome" placeholder="Ex: Talhão 01, Gleba A, Área Norte…"/></div>
+      <div class="grid2">
+        <div class="field"><label>Área (hectares)</label><input type="number" id="gArea" placeholder="Ex: 120.5" step="0.01" oninput="calcMediaGleba()"/></div>
+        <div class="field"><label>Cultura</label><input type="text" id="gCultura" placeholder="Ex: Milho 1ª safra" value="Milho"/></div>
+      </div>
+      <div class="field"><label>Observações</label><input type="text" id="gObs" placeholder="Opcional"/></div>
+      <div class="tara-box" id="mediaGlebaBox" style="display:none">
+        <span class="tara-label">Produção esperada (60 sc/ha)</span>
+        <span class="tara-value" id="mediaGlebaVal">—</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal('modalGleba')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarGleba()">Salvar Gleba</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VEÍCULO -->
+<div class="overlay" id="modalVeiculo">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <span class="modal-title">🚗 Cadastrar Veículo</span>
+      <button class="close-btn" onclick="fecharModal('modalVeiculo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Placa</label><input type="text" id="mPlaca" placeholder="Ex: ABC-1234"/></div>
+      <div class="field"><label>Tipo</label><input type="text" id="mTipo" placeholder="Ex: Caminhão Truck"/></div>
+      <div class="field"><label>Capacidade</label><input type="text" id="mCapacidade" placeholder="Ex: 14.000 kg"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal('modalVeiculo')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarVeiculo()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MOTORISTA -->
+<div class="overlay" id="modalMotorista">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <span class="modal-title">👤 Cadastrar Motorista</span>
+      <button class="close-btn" onclick="fecharModal('modalMotorista')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Nome Completo</label><input type="text" id="mNome" placeholder="Nome do motorista"/></div>
+      <div class="field"><label>CNH</label><input type="text" id="mCNH" placeholder="Número da CNH"/></div>
+      <div class="field"><label>Telefone</label><input type="text" id="mTelefone" placeholder="(00) 00000-0000"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fecharModal('modalMotorista')">Cancelar</button>
+      <button class="btn-primary" onclick="salvarMotorista()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST SALVO -->
+<div id="toast">✅ Dados salvos automaticamente</div>
+
+<script>
+// ─── DADOS ───────────────────────────────────────────────────────
+const ARMAZENS = [
+  "Armazém Central – Rondonópolis/MT",
+  "Armazém Norte – Sorriso/MT",
+  "Armazém Sul – Campo Verde/MT",
+  "Armazém Leste – Primavera do Leste/MT",
+  "Armazém Oeste – Sapezal/MT",
+  "Armazém Cooperativa A – Lucas do Rio Verde/MT",
+  "Armazém Cooperativa B – Nova Mutum/MT",
+  "Armazém Exportação – Porto Alegre/RS",
+  "Armazém Frigorífico – Cuiabá/MT",
+  "Armazém Integração – Sinop/MT",
+];
+
+const TALHOES = [
+  "Talhão 01","Talhão 02","Talhão 03","Talhão 04","Talhão 05","Talhão 06",
+  "Talhão 07","Talhão 08","Talhão 09","Talhão 10","Talhão 11","Talhão 12",
+  "Gleba A","Gleba B","Gleba C","Gleba D",
+  "Área Norte","Área Sul","Área Leste","Área Oeste",
+];
+
+// ─── PERSISTÊNCIA ────────────────────────────────────────────────
+const DEFAULT_VEICULOS   = [{ id: 1, placa: "ABC-1234", tipo: "Caminhão Truck", capacidade: "14.000 kg" }];
+const DEFAULT_MOTORISTAS = [{ id: 1, nome: "João da Silva", cnh: "12345678900", telefone: "(65) 99999-0001" }];
+const DEFAULT_GLEBAS     = [{ id: 1, nome: "Talhão 01", area: 120.5, cultura: "Milho", obs: "" }];
+const DEFAULT_ARMAZENS   = [
+  { id: 1,  nome: "Armazém Central",      cidade: "Rondonópolis/MT", desconto: 1.5, obs: "" },
+  { id: 2,  nome: "Armazém Norte",         cidade: "Sorriso/MT",      desconto: 0,   obs: "" },
+  { id: 3,  nome: "Armazém Sul",           cidade: "Campo Verde/MT",  desconto: 2.0, obs: "" },
+  { id: 4,  nome: "Armazém Leste",         cidade: "Primavera do Leste/MT", desconto: 0, obs: "" },
+  { id: 5,  nome: "Armazém Oeste",         cidade: "Sapezal/MT",      desconto: 1.0, obs: "" },
+  { id: 6,  nome: "Cooperativa A",         cidade: "Lucas do Rio Verde/MT", desconto: 1.2, obs: "" },
+  { id: 7,  nome: "Cooperativa B",         cidade: "Nova Mutum/MT",   desconto: 0,   obs: "" },
+  { id: 8,  nome: "Armazém Exportação",    cidade: "Porto Alegre/RS", desconto: 2.5, obs: "" },
+  { id: 9,  nome: "Armazém Frigorífico",   cidade: "Cuiabá/MT",       desconto: 0,   obs: "" },
+  { id: 10, nome: "Armazém Integração",    cidade: "Sinop/MT",        desconto: 1.8, obs: "" },
+];
+const DEFAULT_CONTRATOS  = [];
+const DEFAULT_VIAGENS    = [{ id: 1, placa: "ABC-1234", motorista: "João da Silva", talhao: "Talhão 01",
+    pesoBruto: 28500, pesoLiquido: 14200, desconto: 1.5, pesoLiqDesconto: 13987, umidade: 16.5,
+    notaFiscal: "NF-000123", dataDescarga: "2026-06-09", contrato: "", obs: "",
+    armazem: "Armazém Central – Rondonópolis/MT", status: "Concluída" }];
+
+function carregar(chave, padrao) {
+  try { const v = localStorage.getItem(chave); return v ? JSON.parse(v) : padrao; }
+  catch(e) { return padrao; }
+}
+
+function salvar() {
+  try {
+    localStorage.setItem('agro_veiculos',   JSON.stringify(veiculos));
+    localStorage.setItem('agro_motoristas', JSON.stringify(motoristas));
+    localStorage.setItem('agro_viagens',    JSON.stringify(viagens));
+    localStorage.setItem('agro_glebas',     JSON.stringify(glebas));
+    localStorage.setItem('agro_armazens',   JSON.stringify(armazens));
+    localStorage.setItem('agro_contratos',  JSON.stringify(contratos));
+    mostrarToast();
+  } catch(e) { console.warn('Erro ao salvar:', e); }
+}
+
+let _toastTimer;
+function mostrarToast() {
+  let t = document.getElementById('toast');
+  if (!t) return;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+let veiculos   = carregar('agro_veiculos',   DEFAULT_VEICULOS);
+let motoristas = carregar('agro_motoristas', DEFAULT_MOTORISTAS);
+let viagens    = carregar('agro_viagens',    DEFAULT_VIAGENS);
+let glebas     = carregar('agro_glebas',     DEFAULT_GLEBAS);
+let armazens   = carregar('agro_armazens',   DEFAULT_ARMAZENS);
+let contratos  = carregar('agro_contratos',  DEFAULT_CONTRATOS);
+
+// ─── UTILS ───────────────────────────────────────────────────────
+const fmtKg = v => Number(v).toLocaleString('pt-BR') + ' kg';
+const fmtData = d => d ? new Date(d+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+
+// ─── NAV ─────────────────────────────────────────────────────────
+function showTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+
+  const titles = { dashboard:'Dashboard', viagens:'Viagens', contratos:'Contratos', glebas:'Glebas / Talhões', armazens:'Armazéns', veiculos:'Veículos', motoristas:'Motoristas' };
+  document.getElementById('headerTitle').textContent = titles[tab];
+
+  const subs = {
+    dashboard: 'Resumo geral da safra',
+    viagens: viagens.length + ' viagem(ns) registrada(s)',
+    contratos: contratos.length + ' contrato(s) cadastrado(s)',
+    glebas: glebas.length + ' gleba(s) cadastrada(s)',
+    armazens: armazens.length + ' armazém(ns) cadastrado(s)',
+    veiculos: veiculos.length + ' veículo(s) cadastrado(s)',
+    motoristas: motoristas.length + ' motorista(s) cadastrado(s)',
+  };
+  document.getElementById('headerSub').textContent = subs[tab];
+
+  const actions = document.getElementById('headerActions');
+  if (tab === 'dashboard') {
+    actions.innerHTML = `<button class="btn-excel" onclick="exportarExcel()">📥 Exportar Excel</button>`;
+  } else if (tab === 'viagens') {
+    actions.innerHTML = `<button class="btn-excel" onclick="exportarExcel()">📥 Exportar Excel</button>
+      <button class="btn-primary" onclick="abrirModalViagem()">+ Nova Viagem</button>`;
+  } else if (tab === 'contratos') {
+    actions.innerHTML = `<button class="btn-primary" onclick="abrirModalContrato()">+ Novo Contrato</button>`;
+  } else if (tab === 'glebas') {
+    actions.innerHTML = `<button class="btn-primary" onclick="abrirModalGleba()">+ Nova Gleba</button>`;
+  } else if (tab === 'armazens') {
+    actions.innerHTML = `<button class="btn-primary" onclick="document.getElementById('modalArmazem').classList.add('open')">+ Novo Armazém</button>`;
+  } else if (tab === 'veiculos') {
+    actions.innerHTML = `<button class="btn-primary" onclick="document.getElementById('modalVeiculo').classList.add('open')">+ Novo Veículo</button>`;
+  } else if (tab === 'motoristas') {
+    actions.innerHTML = `<button class="btn-primary" onclick="document.getElementById('modalMotorista').classList.add('open')">+ Novo Motorista</button>`;
+  }
+
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'viagens') renderViagens();
+  if (tab === 'contratos') renderContratos();
+  if (tab === 'glebas') renderGlebas();
+  if (tab === 'armazens') renderArmazens();
+  if (tab === 'veiculos') renderVeiculos();
+  if (tab === 'motoristas') renderMotoristas();
+}
+
+// ─── RENDER DASHBOARD ────────────────────────────────────────────
+function renderDashboard() {
+  const totalBruto = viagens.reduce((a,v)=>a+Number(v.pesoBruto||0),0);
+  const totalLiq   = viagens.reduce((a,v)=>a+Number(v.pesoLiquido||0),0);
+  const totalSacas = Math.round(totalLiq / 60);
+  const totalArea  = glebas.reduce((a,g)=>a+Number(g.area||0),0);
+
+  // Média geral: total de sacas entregues ÷ área total cadastrada
+  const mediaGeralScHa = totalArea > 0 && totalSacas > 0
+    ? totalSacas / totalArea
+    : 0;
+
+  // Stats por gleba: sacas entregues / area da gleba
+  const glebasStat = glebas.map(g => {
+    const vgs   = viagens.filter(v => v.talhao === g.nome);
+    const kg    = vgs.reduce((a,v) => a + Number(v.pesoLiquido||0), 0);
+    const sacas = Math.round(kg / 60);
+    const media = g.area > 0 && sacas > 0 ? sacas / g.area : 0;
+    return { nome: g.nome, area: Number(g.area)||0, viagens: vgs.length, kg, sacas, media };
+  }).filter(t => t.viagens > 0).sort((a,b) => b.media - a.media);
+
+  document.getElementById('dashCards').innerHTML = `
+    ${card('🚛','Total de Viagens', viagens.length, 'viagens', '#f59e0b')}
+    ${card('⚖️','Peso Líquido Total', totalLiq.toLocaleString('pt-BR'), 'kg', '#22c55e')}
+    ${card('🌾','Total em Sacas', totalSacas.toLocaleString('pt-BR'), 'sacas (60 kg)', '#3b82f6')}
+    ${card('📐','Área Total', totalArea.toLocaleString('pt-BR',{maximumFractionDigits:1}), 'hectares', '#a855f7')}
+    ${card('📈','Média Geral', mediaGeralScHa.toLocaleString('pt-BR',{maximumFractionDigits:1}), 'sc / ha', '#22d3ee')}
+    ${card('📦','Peso Bruto Total', totalBruto.toLocaleString('pt-BR'), 'kg', '#f97316')}
+  `;
+
+  // Tabela de média sc/ha por gleba
+  let glebaHtml = '';
+  if (glebasStat.length > 0) {
+    glebaHtml = `<div class="section-title">Média de Produção por Gleba / Talhão</div>
+    <div style="overflow-x:auto;border-radius:12px;border:1px solid #1e2d3d;background:#0a1018;margin-bottom:28px">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr>
+        <th style="padding:12px 16px;text-align:left;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e2d3d">Gleba / Talhão</th>
+        <th style="padding:12px 16px;text-align:right;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e2d3d">Área (ha)</th>
+        <th style="padding:12px 16px;text-align:right;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e2d3d">Sacas entregues</th>
+        <th style="padding:12px 16px;text-align:right;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e2d3d">Peso Líquido (kg)</th>
+        <th style="padding:12px 16px;text-align:right;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e2d3d">Viagens</th>
+        <th style="padding:12px 16px;text-align:center;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e2d3d">Média sc / ha</th>
+        <th style="padding:12px 16px;text-align:left;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #1e2d3d">Barra</th>
+      </tr></thead>
+      <tbody>`;
+
+    // Para barra proporcional, pega a maior média
+    const maxMedia = Math.max(...glebasStat.map(g=>g.media), 1);
+
+    glebasStat.forEach((t,i) => {
+      const mediaStr = t.area > 0
+        ? t.media.toLocaleString('pt-BR',{maximumFractionDigits:1}) + ' sc/ha'
+        : '—';
+      const cor = t.media >= 120 ? '#4ade80'
+                : t.media >= 80  ? '#22c55e'
+                : t.media >= 60  ? '#f59e0b'
+                : '#f87171';
+      const pct = maxMedia > 0 ? Math.round(t.media / maxMedia * 100) : 0;
+      const borda = i < glebasStat.length-1 ? 'border-bottom:1px solid #111820' : '';
+      glebaHtml += `<tr style="${borda}">
+        <td style="padding:13px 16px"><span style="background:#2d1b69;color:#c4b5fd;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600">🌾 ${t.nome}</span></td>
+        <td style="padding:13px 16px;text-align:right;color:#a78bfa;font-weight:600">${t.area > 0 ? t.area.toLocaleString('pt-BR',{maximumFractionDigits:1})+' ha' : '—'}</td>
+        <td style="padding:13px 16px;text-align:right;color:#60a5fa;font-weight:700">${t.sacas.toLocaleString('pt-BR')} sc</td>
+        <td style="padding:13px 16px;text-align:right;color:#94a3b8">${t.kg.toLocaleString('pt-BR')} kg</td>
+        <td style="padding:13px 16px;text-align:right;color:#64748b">${t.viagens}</td>
+        <td style="padding:13px 16px;text-align:center">
+          <span style="font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:${cor}">${mediaStr}</span>
+        </td>
+        <td style="padding:13px 16px;min-width:140px">
+          <div style="background:#1e2d3d;border-radius:4px;height:10px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${cor};border-radius:4px;transition:width 0.4s"></div>
+          </div>
+        </td>
+      </tr>`;
+    });
+
+    // Linha de total
+    const totalSacasGlebas = glebasStat.reduce((a,g)=>a+g.sacas,0);
+    const totalAreaGlebas  = glebasStat.reduce((a,g)=>a+g.area,0);
+    const mediaTotal = totalAreaGlebas > 0 ? totalSacasGlebas / totalAreaGlebas : 0;
+    const corTotal = mediaTotal >= 120 ? '#4ade80' : mediaTotal >= 80 ? '#22c55e' : mediaTotal >= 60 ? '#f59e0b' : '#f87171';
+    glebaHtml += `<tr style="border-top:2px solid #1e2d3d;background:#0d1520">
+      <td style="padding:13px 16px;font-weight:700;color:#f8fafc">TOTAL / MÉDIA GERAL</td>
+      <td style="padding:13px 16px;text-align:right;color:#a78bfa;font-weight:700">${totalAreaGlebas.toLocaleString('pt-BR',{maximumFractionDigits:1})} ha</td>
+      <td style="padding:13px 16px;text-align:right;color:#60a5fa;font-weight:700">${totalSacasGlebas.toLocaleString('pt-BR')} sc</td>
+      <td style="padding:13px 16px;text-align:right;color:#94a3b8">${glebasStat.reduce((a,g)=>a+g.kg,0).toLocaleString('pt-BR')} kg</td>
+      <td style="padding:13px 16px;text-align:right;color:#64748b">${glebasStat.reduce((a,g)=>a+g.viagens,0)}</td>
+      <td style="padding:13px 16px;text-align:center"><span style="font-family:'DM Mono',monospace;font-size:15px;font-weight:800;color:${corTotal}">${mediaTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} sc/ha</span></td>
+      <td></td>
+    </tr>`;
+
+    glebaHtml += `</tbody></table></div>`;
+  }
+  document.getElementById('talhaoSection').innerHTML = glebaHtml;
+
+  const ultimas = [...viagens].reverse().slice(0,5);
+  document.getElementById('dashTabela').innerHTML = tabelaViagens(ultimas);
+}
+
+function card(icon, label, value, unit, color) {
+  return `<div class="card" style="border-top:4px solid ${color}">
+    <div class="card-icon">${icon}</div>
+    <div class="card-value" style="color:${color}">${value}</div>
+    <div class="card-unit">${unit}</div>
+    <div class="card-label">${label}</div>
+  </div>`;
+}
+
+// ─── RENDER VIAGENS ──────────────────────────────────────────────
+function renderViagens() {
+  // Populate filter dropdowns with unique values from viagens
+  const placas    = [...new Set(viagens.map(v=>v.placa).filter(Boolean))].sort();
+  const talhoes   = [...new Set(viagens.map(v=>v.talhao).filter(Boolean))].sort();
+  const armazensV = [...new Set(viagens.map(v=>v.armazem).filter(Boolean))].sort();
+  const contratosV= [...new Set(viagens.map(v=>v.contrato).filter(Boolean))].sort();
+
+  const keep = (sel, opts) => {
+    const cur = sel.value;
+    sel.innerHTML = opts;
+    if ([...sel.options].some(o=>o.value===cur)) sel.value = cur;
+  };
+
+  keep(document.getElementById('filtroPlaca'),
+    '<option value="">Todas as placas</option>' + placas.map(p=>`<option value="${p}">${p}</option>`).join(''));
+  keep(document.getElementById('filtroTalhao'),
+    '<option value="">Todas as glebas</option>' + talhoes.map(t=>`<option value="${t}">${t}</option>`).join(''));
+  keep(document.getElementById('filtroArmazem'),
+    '<option value="">Todos os armazéns</option>' + armazensV.map(a=>`<option value="${a}">${a}</option>`).join(''));
+  keep(document.getElementById('filtroContrato'),
+    '<option value="">Todos os contratos</option>' + contratosV.map(c=>`<option value="${c}">${c}</option>`).join(''));
+
+  aplicarFiltros();
+}
+
+function aplicarFiltros() {
+  const fPlaca   = document.getElementById('filtroPlaca').value;
+  const fTalhao  = document.getElementById('filtroTalhao').value;
+  const fArmazem = document.getElementById('filtroArmazem').value;
+  const fContr   = document.getElementById('filtroContrato').value;
+  const fDtIni   = document.getElementById('filtroDataInicio').value;
+  const fDtFim   = document.getElementById('filtroDataFim').value;
+
+  let lista = [...viagens].reverse().filter(v => {
+    if (fPlaca   && v.placa   !== fPlaca)   return false;
+    if (fTalhao  && v.talhao  !== fTalhao)  return false;
+    if (fArmazem && v.armazem !== fArmazem) return false;
+    if (fContr   && v.contrato!== fContr)   return false;
+    if (fDtIni   && v.dataDescarga < fDtIni) return false;
+    if (fDtFim   && v.dataDescarga > fDtFim) return false;
+    return true;
+  });
+
+  // Resumo dos filtros ativos
+  const temFiltro = fPlaca||fTalhao||fArmazem||fContr||fDtIni||fDtFim;
+  const resumoEl  = document.getElementById('filtroResumo');
+  if (temFiltro) {
+    const totalKg   = lista.reduce((a,v)=>a+Number(v.pesoLiquido||0),0);
+    const totalSacs = Math.round(totalKg/60);
+    resumoEl.style.display = 'flex';
+    document.getElementById('filtroResumoTexto').textContent = `${lista.length} viagem(ns) filtrada(s)`;
+    document.getElementById('filtroResumoKg').textContent    = totalKg.toLocaleString('pt-BR')+' kg líquido';
+    document.getElementById('filtroResumoSacas').textContent = totalSacs.toLocaleString('pt-BR')+' sacas';
+  } else {
+    resumoEl.style.display = 'none';
+  }
+
+  document.getElementById('headerSub').textContent = lista.length + ' de ' + viagens.length + ' viagem(ns)';
+  document.getElementById('viagensTabela').innerHTML = tabelaViagens(lista, true);
+}
+
+function limparFiltros() {
+  ['filtroPlaca','filtroTalhao','filtroArmazem','filtroContrato'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  ['filtroDataInicio','filtroDataFim'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  aplicarFiltros();
+}
+
+function tabelaViagens(lista, comExcluir=false) {
+  if (!lista.length) return `<div class="empty">Nenhuma viagem registrada ainda.</div>`;
+  let rows = lista.map(v => {
+    const tara = (Number(v.pesoBruto)||0)-(Number(v.pesoLiquido)||0);
+    const desc = Number(v.desconto)||0;
+    const liqDesc = Number(v.pesoLiqDesconto)||0;
+    const umid = Number(v.umidade)||0;
+    const excBtn = comExcluir ? `<td style="white-space:nowrap;display:flex;gap:6px;padding:10px 14px">
+      <button class="btn-secondary" style="padding:4px 10px;font-size:12px" onclick="editarViagem(${v.id})">✏️ Editar</button>
+      <button class="btn-danger" onclick="excluirViagem(${v.id})">Excluir</button>
+    </td>` : '';
+    return `<tr>
+      <td><span class="nf">${v.notaFiscal}</span></td>
+      <td><span class="badge">${v.placa}</span></td>
+      <td>${v.motorista}</td>
+      <td><span class="talhao-tag">${v.talhao||'—'}</span></td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.armazem}</td>
+      <td style="color:#94a3b8">${fmtKg(v.pesoBruto)}</td>
+      <td style="color:#22c55e;font-weight:700">${fmtKg(v.pesoLiquido)}</td>
+      <td style="color:#f97316">${fmtKg(tara)}</td>
+      <td style="color:${umid>0?'#a5b4fc':'#64748b'}">${umid>0?umid.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%':'—'}</td>
+      <td style="color:${desc>0?'#f87171':'#64748b'};font-weight:${desc>0?'700':'400'}">${desc>0?desc.toLocaleString('pt-BR',{maximumFractionDigits:2})+'%':'—'}</td>
+      <td style="color:${liqDesc>0?'#4ade80':'#64748b'};font-weight:700">${liqDesc>0?fmtKg(liqDesc):'—'}</td>
+      <td>${v.contrato?`<span style="color:#f59e0b;font-family:monospace;font-size:12px">${v.contrato}</span>`:'—'}</td>
+      <td style="color:#94a3b8;font-size:12px">${v.obs||'—'}</td>
+      <td>${fmtData(v.dataDescarga)}</td>
+      <td><span class="pill">${v.status}</span></td>
+      ${excBtn}
+    </tr>`;
+  });
+  const excTh = comExcluir ? '<th>Ação</th>' : '';
+  return `<table><thead><tr>
+    <th>Nota Fiscal</th><th>Placa</th><th>Motorista</th><th>Talhão</th><th>Armazém</th>
+    <th>P. Bruto</th><th>P. Líquido</th><th>Tara</th><th>Umidade</th><th>Desc. %</th><th>Líq. c/ Desc.</th><th>Contrato</th><th>Obs.</th><th>Data</th><th>Status</th>${excTh}
+  </tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+
+function editarViagem(id) {
+  const v = viagens.find(x=>x.id===id);
+  if (!v) return;
+  document.getElementById('evId').value = id;
+
+  // Populate selects
+  const selPlaca = document.getElementById('evPlaca');
+  selPlaca.innerHTML = '<option value="">Selecione</option>' +
+    veiculos.map(x=>`<option value="${x.placa}" ${x.placa===v.placa?'selected':''}>${x.placa} — ${x.tipo}</option>`).join('');
+
+  const selMot = document.getElementById('evMotorista');
+  selMot.innerHTML = '<option value="">Selecione</option>' +
+    motoristas.map(x=>`<option value="${x.nome}" ${x.nome===v.motorista?'selected':''}>${x.nome}</option>`).join('');
+
+  const selTal = document.getElementById('evTalhao');
+  selTal.innerHTML = '<option value="">Selecione</option>' +
+    glebas.map(x=>`<option value="${x.nome}" ${x.nome===v.talhao?'selected':''}>${x.nome}${x.area?' ('+x.area+' ha)':''}</option>`).join('');
+
+  const selArm = document.getElementById('evArmazem');
+  selArm.innerHTML = '<option value="">Selecione</option>' +
+    armazens.map(x=>{
+      const lbl = x.cidade ? x.nome+' – '+x.cidade : x.nome;
+      // match both "Nome" and "Nome – Cidade"
+      const sel = (v.armazem===x.nome || v.armazem===x.nome+' – '+x.cidade) ? 'selected' : '';
+      return `<option value="${x.nome}" ${sel}>${lbl}</option>`;
+    }).join('');
+
+  const selCont = document.getElementById('evContrato');
+  selCont.innerHTML = '<option value="">Sem contrato</option>' +
+    contratos.map(x=>`<option value="${x.numero}" ${x.numero===v.contrato?'selected':''}>${x.numero} — ${x.armazem}</option>`).join('');
+
+  document.getElementById('evPesoBruto').value  = v.pesoBruto||'';
+  document.getElementById('evUmidade').value    = v.umidade||'';
+  document.getElementById('evDesconto').value   = v.desconto||'';
+  document.getElementById('evPesoLiquido').value= v.pesoLiquido||'';
+  document.getElementById('evNF').value         = v.notaFiscal||'';
+  document.getElementById('evData').value       = v.dataDescarga||'';
+  document.getElementById('evObs').value        = v.obs||'';
+  document.getElementById('evUmidadeHint').textContent = '';
+
+  recalcularEdit();
+  document.getElementById('modalEditarViagem').classList.add('open');
+}
+
+function recalcularEdit() {
+  const b    = Number(document.getElementById('evPesoBruto').value)||0;
+  const u    = Number(document.getElementById('evUmidade').value)||0;
+  const hint = document.getElementById('evUmidadeHint');
+
+  if (u > 0) {
+    const desc = getDescontoUmidade(u);
+    if (desc === null) {
+      hint.textContent = '⚠️ Umidade fora da tabela'; hint.style.color='#f87171';
+    } else if (desc === 0) {
+      hint.textContent = '✅ Sem desconto (≤14%)'; hint.style.color='#4ade80';
+      document.getElementById('evDesconto').value = 0;
+    } else {
+      hint.textContent = `✅ Desconto: ${desc.toLocaleString('pt-BR',{maximumFractionDigits:2})}%`;
+      hint.style.color = '#f59e0b';
+      document.getElementById('evDesconto').value = desc;
+    }
+  } else { hint.textContent = ''; }
+
+  const desc = Number(document.getElementById('evDesconto').value)||0;
+  const descontoKg = b > 0 && desc > 0 ? Math.round(b * desc / 100) : 0;
+  const liquido    = b > 0 ? Math.round(b - descontoKg) : 0;
+  document.getElementById('evPesoLiquido').value = liquido > 0 ? liquido : '';
+
+  const box = document.getElementById('evResumoBox');
+  if (b > 0) {
+    box.style.display = 'flex';
+    document.getElementById('evResumoBruto').textContent  = b.toLocaleString('pt-BR')+' kg';
+    document.getElementById('evResumoLiquido').textContent= liquido > 0 ? liquido.toLocaleString('pt-BR')+' kg' : '—';
+    const dBox = document.getElementById('evDescontoBox');
+    const sBox = document.getElementById('evSacasBox');
+    if (descontoKg > 0) {
+      document.getElementById('evDescontoKg').textContent = descontoKg.toLocaleString('pt-BR')+' kg';
+      dBox.style.display='flex';
+    } else { dBox.style.display='none'; }
+    if (liquido > 0) {
+      document.getElementById('evResumoSacas').textContent = Math.round(liquido/60).toLocaleString('pt-BR')+' sc';
+      sBox.style.display='flex';
+    } else { sBox.style.display='none'; }
+  } else { box.style.display='none'; }
+}
+
+function salvarEdicaoViagem() {
+  const id = Number(document.getElementById('evId').value);
+  const nf = document.getElementById('evNF').value.trim();
+  const placa = document.getElementById('evPlaca').value;
+  if (!placa || !nf) { alert('Preencha pelo menos a Placa e a Nota Fiscal.'); return; }
+
+  const idx = viagens.findIndex(x=>x.id===id);
+  if (idx<0) return;
+
+  const bruto   = Number(document.getElementById('evPesoBruto').value)||0;
+  const desc    = Number(document.getElementById('evDesconto').value)||0;
+  const umidade = Number(document.getElementById('evUmidade').value)||0;
+  const descontoKg = bruto > 0 && desc > 0 ? Math.round(bruto*desc/100) : 0;
+  const liq     = bruto > 0 ? Math.round(bruto - descontoKg) : 0;
+
+  const armNome = document.getElementById('evArmazem').value;
+  const armObj  = armazens.find(a=>a.nome===armNome);
+  const armLabel= armObj && armObj.cidade ? `${armObj.nome} – ${armObj.cidade}` : armNome;
+
+  viagens[idx] = {
+    ...viagens[idx],
+    placa,
+    motorista:   document.getElementById('evMotorista').value,
+    talhao:      document.getElementById('evTalhao').value,
+    armazem:     armLabel,
+    pesoBruto:   bruto,
+    pesoLiquido: liq,
+    umidade,
+    desconto:    desc,
+    pesoLiqDesconto: liq,
+    notaFiscal:  nf,
+    dataDescarga:document.getElementById('evData').value,
+    contrato:    document.getElementById('evContrato').value,
+    obs:         document.getElementById('evObs').value,
+  };
+
+  fecharModal('modalEditarViagem');
+  salvar();
+  renderViagens();
+  renderDashboard();
+}
+
+function excluirViagem(id) {
+  if (!confirm('Excluir esta viagem?')) return;
+  viagens = viagens.filter(v=>v.id!==id);
+  salvar();
+  renderViagens();
+}
+
+// ─── RENDER VEÍCULOS ─────────────────────────────────────────────
+function renderVeiculos() {
+  if (!veiculos.length) { document.getElementById('veiculosTabela').innerHTML=`<div class="empty">Nenhum veículo cadastrado.</div>`; return; }
+  const rows = veiculos.map(v=>`<tr>
+    <td><span class="badge">${v.placa}</span></td>
+    <td>${v.tipo}</td><td>${v.capacidade}</td>
+    <td><button class="btn-danger" onclick="excluirVeiculo(${v.id})">Excluir</button></td>
+  </tr>`).join('');
+  document.getElementById('veiculosTabela').innerHTML=`<table><thead><tr><th>Placa</th><th>Tipo</th><th>Capacidade</th><th>Ação</th></tr></thead><tbody>${rows}</tbody></table>`;
+  document.getElementById('headerSub').textContent = veiculos.length+' veículo(s) cadastrado(s)';
+}
+function excluirVeiculo(id){ if(!confirm('Excluir veículo?'))return; veiculos=veiculos.filter(v=>v.id!==id); salvar(); renderVeiculos(); }
+
+// ─── RENDER MOTORISTAS ───────────────────────────────────────────
+function renderMotoristas() {
+  if (!motoristas.length) { document.getElementById('motoristasTabela').innerHTML=`<div class="empty">Nenhum motorista cadastrado.</div>`; return; }
+  const rows = motoristas.map(m=>`<tr>
+    <td><strong>${m.nome}</strong></td><td>${m.cnh}</td><td>${m.telefone}</td>
+    <td><button class="btn-danger" onclick="excluirMotorista(${m.id})">Excluir</button></td>
+  </tr>`).join('');
+  document.getElementById('motoristasTabela').innerHTML=`<table><thead><tr><th>Nome</th><th>CNH</th><th>Telefone</th><th>Ação</th></tr></thead><tbody>${rows}</tbody></table>`;
+  document.getElementById('headerSub').textContent = motoristas.length+' motorista(s) cadastrado(s)';
+}
+function excluirMotorista(id){ if(!confirm('Excluir motorista?'))return; motoristas=motoristas.filter(m=>m.id!==id); salvar(); renderMotoristas(); }
+
+// ─── RENDER ARMAZÉNS ─────────────────────────────────────────────
+function renderArmazens() {
+  document.getElementById('headerSub').textContent = armazens.length+' armazém(ns) cadastrado(s)';
+  if (!armazens.length) { document.getElementById('armazensTabela').innerHTML=`<div class="empty">Nenhum armazém cadastrado.</div>`; return; }
+  const rows = armazens.map(a=>{
+    const vgs = viagens.filter(v=>v.armazem===a.nome+' – '+a.cidade || v.armazem===a.nome);
+    const descTag = a.desconto > 0
+      ? `<span style="background:#3b1515;color:#f87171;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700">${Number(a.desconto).toLocaleString('pt-BR',{maximumFractionDigits:2})}%</span>`
+      : `<span style="background:#1e2d3d;color:#64748b;border-radius:6px;padding:3px 8px;font-size:12px">Sem desconto</span>`;
+    return `<tr>
+      <td><strong style="color:#f8fafc">${a.nome}</strong></td>
+      <td style="color:#94a3b8">${a.cidade||'—'}</td>
+      <td>${descTag}</td>
+      <td>${a.obs||'—'}</td>
+      <td>${vgs.length}</td>
+      <td style="display:flex;gap:6px;padding:12px 14px">
+        <button class="btn-secondary" style="padding:4px 12px;font-size:12px" onclick="abrirEditarArmazem(${a.id})">✏️ Editar</button>
+        <button class="btn-danger" onclick="excluirArmazem(${a.id})">Excluir</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('armazensTabela').innerHTML=`<table><thead><tr>
+    <th>Nome</th><th>Cidade / UF</th><th>Desconto</th><th>Obs.</th><th>Viagens</th><th>Ação</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function abrirEditarArmazem(id) {
+  const a = armazens.find(x=>x.id===id); if(!a) return;
+  document.getElementById('eaId').value = id;
+  document.getElementById('eaNome').value = a.nome;
+  document.getElementById('eaDesconto').value = a.desconto;
+  document.getElementById('eaCidade').value = a.cidade||'';
+  document.getElementById('eaObs').value = a.obs||'';
+  document.getElementById('modalEditarArmazem').classList.add('open');
+}
+
+function salvarEdicaoArmazem() {
+  const id   = Number(document.getElementById('eaId').value);
+  const nome = document.getElementById('eaNome').value.trim();
+  if (!nome) { alert('Informe o nome.'); return; }
+  const idx = armazens.findIndex(a=>a.id===id);
+  if (idx < 0) return;
+  const nomeAntigo = armazens[idx].nome;
+  armazens[idx] = { ...armazens[idx], nome, desconto: Number(document.getElementById('eaDesconto').value)||0, cidade: document.getElementById('eaCidade').value, obs: document.getElementById('eaObs').value };
+  // Atualiza nome nas viagens existentes
+  viagens.forEach(v=>{ if(v.armazem===nomeAntigo) v.armazem=nome; });
+  fecharModal('modalEditarArmazem');
+  salvar();
+  renderArmazens();
+}
+
+function excluirArmazem(id){
+  const a = armazens.find(x=>x.id===id);
+  if(!confirm(`Excluir "${a?.nome}"?`)) return;
+  armazens=armazens.filter(x=>x.id!==id); salvar(); renderArmazens();
+}
+
+function salvarArmazem() {
+  const nome = document.getElementById('aNome').value.trim();
+  if (!nome) { alert('Informe o nome.'); return; }
+  armazens.push({ id: Date.now(), nome, desconto: Number(document.getElementById('aDesconto').value)||0, cidade: document.getElementById('aCidade').value, obs: document.getElementById('aObs').value });
+  ['aNome','aDesconto','aCidade','aObs'].forEach(id=>document.getElementById(id).value='');
+  fecharModal('modalArmazem');
+  salvar();
+  renderArmazens();
+}
+
+// ─── RENDER GLEBAS ───────────────────────────────────────────────
+function renderGlebas() {
+  document.getElementById('headerSub').textContent = glebas.length+' gleba(s) cadastrada(s)';
+  if (!glebas.length) { document.getElementById('glebasTabela').innerHTML=`<div class="empty">Nenhuma gleba cadastrada. Clique em "+ Nova Gleba" para começar.</div>`; return; }
+  const rows = glebas.map(g => {
+    const vgs = viagens.filter(v=>v.talhao===g.nome);
+    const kg  = vgs.reduce((a,v)=>a+Number(v.pesoLiquido||0),0);
+    const scs = kg / 60;
+    const mediaSc = (g.area > 0 && kg > 0) ? (kg/60000)/g.area : null;
+    const mediaStr = mediaSc !== null ? mediaSc.toLocaleString('pt-BR',{maximumFractionDigits:1})+' sc/ha' : '—';
+    const mediaColor = mediaSc === null ? '#64748b' : mediaSc >= 100 ? '#4ade80' : mediaSc >= 60 ? '#f59e0b' : '#f87171';
+    return `<tr>
+      <td><span class="talhao-tag">${g.nome}</span></td>
+      <td>${g.cultura||'—'}</td>
+      <td style="color:#a78bfa;font-weight:600">${g.area ? g.area.toLocaleString('pt-BR',{maximumFractionDigits:2})+' ha' : '—'}</td>
+      <td style="color:#22c55e;font-weight:700">${kg > 0 ? kg.toLocaleString('pt-BR')+' kg' : '—'}</td>
+      <td style="color:#60a5fa">${kg > 0 ? Math.round(scs).toLocaleString('pt-BR')+' sc' : '—'}</td>
+      <td style="color:${mediaColor};font-weight:700">${mediaStr}</td>
+      <td>${vgs.length}</td>
+      <td>${g.obs||'—'}</td>
+      <td><button class="btn-danger" onclick="excluirGleba(${g.id})">Excluir</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('glebasTabela').innerHTML=`<table><thead><tr>
+    <th>Nome</th><th>Cultura</th><th>Área (ha)</th><th>Prod. Líquida</th><th>Sacas</th><th>Média sc/ha</th><th>Viagens</th><th>Obs.</th><th>Ação</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function excluirGleba(id){ if(!confirm('Excluir esta gleba?'))return; glebas=glebas.filter(g=>g.id!==id); salvar(); renderGlebas(); }
+
+function abrirModalGleba() {
+  ['gNome','gArea','gObs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('gCultura').value='Milho';
+  document.getElementById('mediaGlebaBox').style.display='none';
+  document.getElementById('modalGleba').classList.add('open');
+}
+
+function calcMediaGleba() {
+  const area = Number(document.getElementById('gArea').value)||0;
+  const box  = document.getElementById('mediaGlebaBox');
+  if (area > 0) {
+    const scs = (area * 60).toLocaleString('pt-BR',{maximumFractionDigits:0});
+    document.getElementById('mediaGlebaVal').textContent = scs + ' sacas';
+    box.style.display = 'flex';
+  } else { box.style.display='none'; }
+}
+
+function salvarGleba() {
+  const nome = document.getElementById('gNome').value.trim();
+  if (!nome) { alert('Informe o nome da gleba.'); return; }
+  if (glebas.find(g=>g.nome===nome)) { alert('Já existe uma gleba com este nome.'); return; }
+  glebas.push({
+    id: Date.now(),
+    nome,
+    area: Number(document.getElementById('gArea').value)||0,
+    cultura: document.getElementById('gCultura').value||'Milho',
+    obs: document.getElementById('gObs').value,
+  });
+  fecharModal('modalGleba');
+  salvar();
+  renderGlebas();
+}
+
+// ─── MODAIS ──────────────────────────────────────────────────────
+function fecharModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function abrirModalViagem() {
+  // Preencher selects dinamicamente
+  const selPlaca = document.getElementById('vPlaca');
+  selPlaca.innerHTML = '<option value="">Selecione o veículo</option>' +
+    veiculos.map(v=>`<option value="${v.placa}">${v.placa} — ${v.tipo}</option>`).join('');
+
+  const selMot = document.getElementById('vMotorista');
+  selMot.innerHTML = '<option value="">Selecione o motorista</option>' +
+    motoristas.map(m=>`<option value="${m.nome}">${m.nome}</option>`).join('');
+
+  const selTal = document.getElementById('vTalhao');
+  selTal.innerHTML = '<option value="">Selecione o talhão / gleba</option>' +
+    glebas.map(g=>`<option value="${g.nome}">${g.nome}${g.area?' ('+g.area.toLocaleString('pt-BR',{maximumFractionDigits:1})+' ha)':''}</option>`).join('');
+
+  const selArm = document.getElementById('vArmazem');
+  selArm.innerHTML = '<option value="">Selecione o armazém</option>' +
+    armazens.map(a=>{
+      const label = a.cidade ? `${a.nome} – ${a.cidade}` : a.nome;
+      return `<option value="${a.nome}" data-desconto="${a.desconto}">${label}</option>`;
+    }).join('');
+
+  // Contratos
+  const selCont = document.getElementById('vContrato');
+  selCont.innerHTML = '<option value="">Sem contrato</option>' +
+    contratos.filter(c=>c.status!=='Encerrado').map(c=>{
+      const entregue = sacasEntreguesContrato(c.numero);
+      const restante = c.metaSacas - entregue;
+      const pct = Math.min(100, Math.round(entregue/c.metaSacas*100));
+      return `<option value="${c.numero}">${c.numero} — ${c.armazem} (${pct}% | faltam ${restante.toLocaleString('pt-BR')} sc)</option>`;
+    }).join('');
+  document.getElementById('contratoHint').textContent='';
+  document.getElementById('contratoProgressBox').style.display='none';
+
+  ['vPesoBruto','vNF','vData','vUmidade','vDesconto','vObs'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('vPesoLiquido').value='';
+  document.getElementById('vContrato').value='';
+  document.getElementById('taraBox').style.display='none';
+  document.getElementById('umidadeHint').textContent='';
+  document.getElementById('modalViagem').classList.add('open');
+}
+
+function onArmazemChange() {
+  const sel = document.getElementById('vArmazem');
+  const opt = sel.options[sel.selectedIndex];
+  const desc = opt ? Number(opt.getAttribute('data-desconto')||0) : 0;
+  // Don't override umidade-based discount if umidade is already set
+  const u = Number(document.getElementById('vUmidade').value)||0;
+  if (!u && desc > 0) document.getElementById('vDesconto').value = desc;
+  recalcular();
+}
+
+function sacasEntreguesContrato(numero) {
+  return viagens
+    .filter(v=>v.contrato===numero)
+    .reduce((a,v)=>a + Math.round((Number(v.pesoLiqDesconto)||Number(v.pesoLiquido)||0)/60), 0);
+}
+
+function onContratoChange() {
+  const num  = document.getElementById('vContrato').value;
+  const hint = document.getElementById('contratoHint');
+  const box  = document.getElementById('contratoProgressBox');
+  if (!num) { hint.textContent=''; box.style.display='none'; return; }
+
+  const c = contratos.find(x=>x.numero===num);
+  if (!c) return;
+  const entregue = sacasEntreguesContrato(num);
+  const restante = c.metaSacas - entregue;
+  const pct = Math.min(100, entregue/c.metaSacas*100);
+
+  // Barra de progresso
+  box.style.display='block';
+  document.getElementById('cpNumero').textContent = num;
+  const barra = document.getElementById('cpBarra');
+  const cor = pct >= 100 ? '#ef4444' : pct >= 90 ? '#f59e0b' : '#22c55e';
+  barra.style.width = pct+'%';
+  barra.style.background = cor;
+  document.getElementById('cpEntregue').textContent = `Entregue: ${entregue.toLocaleString('pt-BR')} sc`;
+  document.getElementById('cpMeta').textContent     = `Meta: ${c.metaSacas.toLocaleString('pt-BR')} sc`;
+  document.getElementById('cpRestante').style.color = cor;
+
+  if (pct >= 100) {
+    hint.textContent = '🔴 CONTRATO ESGOTADO — não é possível lançar mais viagens neste contrato.';
+    hint.style.color = '#ef4444';
+    document.getElementById('cpRestante').textContent = '⛔ Esgotado';
+  } else if (pct >= 90) {
+    hint.textContent = `⚠️ Atenção! Restam apenas ${restante.toLocaleString('pt-BR')} sacas (${(100-pct).toFixed(1)}%)`;
+    hint.style.color = '#f59e0b';
+    document.getElementById('cpRestante').textContent = `Restam: ${restante.toLocaleString('pt-BR')} sc`;
+  } else {
+    hint.textContent = `✅ Restam ${restante.toLocaleString('pt-BR')} sacas para cumprir o contrato`;
+    hint.style.color = '#4ade80';
+    document.getElementById('cpRestante').textContent = `Restam: ${restante.toLocaleString('pt-BR')} sc`;
+  }
+}
+
+function recalcular() {
+  const b    = Number(document.getElementById('vPesoBruto').value)||0;
+  const u    = Number(document.getElementById('vUmidade').value)||0;
+  const hint = document.getElementById('umidadeHint');
+
+  // 1. Desconto pela umidade
+  if (u > 0) {
+    const desc = getDescontoUmidade(u);
+    if (desc === null) {
+      hint.textContent = '⚠️ Umidade fora da tabela (14,1% a 27,0%)';
+      hint.style.color = '#f87171';
+    } else if (desc === 0) {
+      hint.textContent = '✅ Umidade ≤ 14% — sem desconto';
+      hint.style.color = '#4ade80';
+      document.getElementById('vDesconto').value = 0;
+    } else {
+      hint.textContent = `✅ Desconto pela tabela: ${desc.toLocaleString('pt-BR',{maximumFractionDigits:2})}%`;
+      hint.style.color = '#f59e0b';
+      document.getElementById('vDesconto').value = desc;
+    }
+  } else {
+    hint.textContent = '';
+  }
+
+  // 2. Calcular peso líquido automaticamente
+  const desc = Number(document.getElementById('vDesconto').value)||0;
+  const descontoKg = b > 0 && desc > 0 ? Math.round(b * desc / 100) : 0;
+  const liquido    = b > 0 ? Math.round(b - descontoKg) : 0;
+
+  // Atualiza campo somente-leitura
+  document.getElementById('vPesoLiquido').value = liquido > 0 ? liquido : '';
+
+  // 3. Atualizar cards de resumo
+  const box = document.getElementById('taraBox');
+  if (b > 0) {
+    box.style.display = 'flex';
+    document.getElementById('resumoBruto').textContent = b.toLocaleString('pt-BR') + ' kg';
+    document.getElementById('resumoLiquido').textContent = liquido > 0 ? liquido.toLocaleString('pt-BR') + ' kg' : '—';
+
+    const uBox = document.getElementById('umidadeBox');
+    const sBox = document.getElementById('sacasBox');
+    if (descontoKg > 0) {
+      document.getElementById('descontoValorKg').textContent = descontoKg.toLocaleString('pt-BR') + ' kg';
+      uBox.style.display = 'flex';
+    } else { uBox.style.display = 'none'; }
+
+    if (liquido > 0) {
+      document.getElementById('resumoSacas').textContent = Math.round(liquido/60).toLocaleString('pt-BR') + ' sc';
+      sBox.style.display = 'flex';
+    } else { sBox.style.display = 'none'; }
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+// ─── TABELA DE UMIDADE (Parâmetros de Qualidade do Milho) ────────
+const TABELA_UMIDADE = {
+  14.1:0.20, 14.2:0.40, 14.3:0.60, 14.4:0.80, 14.5:1.00, 14.6:1.15, 14.7:1.30, 14.8:1.45,
+  14.9:1.60, 15.0:1.75, 15.1:1.90, 15.2:2.05, 15.3:2.20, 15.4:2.35, 15.5:2.50, 15.6:2.65,
+  15.7:2.80, 15.8:2.95, 15.9:3.10, 16.0:3.25, 16.1:3.40, 16.2:3.55, 16.3:3.70, 16.4:3.85,
+  16.5:4.00, 16.6:4.15, 16.7:4.30, 16.8:4.45, 16.9:4.60, 17.0:4.75, 17.1:4.90, 17.2:5.05,
+  17.3:5.20, 17.4:5.35, 17.5:5.50, 17.6:5.65, 17.7:5.80, 17.8:5.95, 17.9:6.10, 18.0:6.25,
+  18.1:6.40, 18.2:6.55, 18.3:6.70, 18.4:6.85, 18.5:7.00, 18.6:7.15, 18.7:7.30, 18.8:7.45,
+  18.9:7.60, 19.0:7.75, 19.1:7.90, 19.2:8.05, 19.3:8.20, 19.4:8.35, 19.5:8.50, 19.6:8.65,
+  19.7:8.80, 19.8:8.95, 19.9:9.10, 20.0:9.25, 20.1:9.40, 20.2:9.55, 20.3:9.70, 20.4:9.85,
+  20.5:10.00, 20.6:10.15, 20.7:10.30, 20.8:10.45, 20.9:10.60, 21.0:10.75, 21.1:10.90,
+  21.2:11.05, 21.3:11.20, 21.4:11.35, 21.5:11.50, 21.6:11.65, 21.7:11.80, 21.8:11.95,
+  21.9:12.10, 22.0:12.25, 22.1:12.40, 22.2:12.55, 22.3:12.70, 22.4:12.85, 22.5:13.00,
+  22.6:13.15, 22.7:13.30, 22.8:13.45, 22.9:13.60, 23.0:13.75, 23.1:13.90, 23.2:14.05,
+  23.3:14.20, 23.4:14.35, 23.5:14.50, 23.6:14.65, 23.7:14.80, 23.8:14.95, 23.9:15.10,
+  24.0:15.25, 24.1:15.40, 24.2:15.55, 24.3:15.70, 24.4:15.85,
+  24.5:16.00, 24.6:16.15, 24.7:16.30, 24.8:16.45, 24.9:16.60, 25.0:16.75, 25.1:16.95,
+  25.2:17.15, 25.3:17.35, 25.4:17.55, 25.5:17.75, 25.6:17.95, 25.7:18.15, 25.8:18.35,
+  25.9:18.55, 26.0:18.75, 26.1:18.95, 26.2:19.15, 26.3:19.35, 26.4:19.55, 26.5:19.75,
+  26.6:19.95, 26.7:20.15, 26.8:20.35, 26.9:20.55, 27.0:20.75,
+};
+
+function getDescontoUmidade(u) {
+  const k = Math.round(u * 10) / 10;
+  if (k <= 14.0) return 0; // sem desconto abaixo de 14%
+  return TABELA_UMIDADE[k] !== undefined ? TABELA_UMIDADE[k] : null;
+}
+
+// recalcular() handles all umidade + desconto + peso liquido logic
+
+function salvarViagem() {
+  const placa = document.getElementById('vPlaca').value;
+  const nf    = document.getElementById('vNF').value.trim();
+  if (!placa || !nf) { alert('Preencha pelo menos a Placa e a Nota Fiscal.'); return; }
+
+  // Validar contrato
+  const numContrato = document.getElementById('vContrato').value;
+  if (numContrato) {
+    const c = contratos.find(x=>x.numero===numContrato);
+    if (c) {
+      const entregue = sacasEntreguesContrato(numContrato);
+      if (entregue >= c.metaSacas) {
+        alert(`❌ Contrato ${numContrato} já está ESGOTADO!\n\nMeta: ${c.metaSacas.toLocaleString('pt-BR')} sacas\nEntregue: ${entregue.toLocaleString('pt-BR')} sacas\n\nNão é possível lançar mais viagens neste contrato.`);
+        return;
+      }
+    }
+  }
+
+  const bruto   = Number(document.getElementById('vPesoBruto').value)||0;
+  const desc    = Number(document.getElementById('vDesconto').value)||0;
+  const umidade = Number(document.getElementById('vUmidade').value)||0;
+  const descontoKg = bruto > 0 && desc > 0 ? Math.round(bruto * desc / 100) : 0;
+  const liq     = bruto > 0 ? Math.round(bruto - descontoKg) : 0;
+  const liqDesc = liq; // peso liquido JA e o peso com desconto de umidade aplicado
+  const armSel  = document.getElementById('vArmazem');
+  const armNome = armSel.value;
+  const armObj  = armazens.find(a=>a.nome===armNome);
+  const armLabel= armObj && armObj.cidade ? `${armObj.nome} – ${armObj.cidade}` : armNome;
+
+  viagens.push({
+    id: Date.now(), placa,
+    motorista:  document.getElementById('vMotorista').value,
+    talhao:     document.getElementById('vTalhao').value,
+    armazem:    armLabel,
+    pesoBruto:  Number(document.getElementById('vPesoBruto').value)||0,
+    pesoLiquido: liq, umidade, desconto: desc, pesoLiqDesconto: liqDesc,
+    notaFiscal: nf,
+    dataDescarga: document.getElementById('vData').value,
+    contrato:   numContrato,
+    obs:        document.getElementById('vObs').value,
+    status: 'Concluída',
+  });
+
+  // Verificar se contrato foi atingido após lançamento
+  if (numContrato) {
+    const c = contratos.find(x=>x.numero===numContrato);
+    if (c) {
+      const entregueAgora = sacasEntreguesContrato(numContrato);
+      const pct = entregueAgora/c.metaSacas*100;
+      if (entregueAgora >= c.metaSacas) {
+        setTimeout(()=>alert(`🏆 Contrato ${numContrato} CONCLUÍDO!\nMeta de ${c.metaSacas.toLocaleString('pt-BR')} sacas atingida!`), 300);
+      } else if (pct >= 90) {
+        const rest = c.metaSacas - entregueAgora;
+        setTimeout(()=>alert(`⚠️ Atenção: contrato ${numContrato} com ${pct.toFixed(1)}% cumprido.\nRestam apenas ${rest.toLocaleString('pt-BR')} sacas.`), 300);
+      }
+    }
+  }
+
+  fecharModal('modalViagem');
+  salvar();
+  renderDashboard();
+  document.getElementById('headerSub').textContent = viagens.length+' viagem(ns) registrada(s)';
+}
+
+function salvarVeiculo() {
+  const placa = document.getElementById('mPlaca').value.trim();
+  if (!placa) { alert('Informe a placa.'); return; }
+  veiculos.push({ id: Date.now(), placa, tipo: document.getElementById('mTipo').value, capacidade: document.getElementById('mCapacidade').value });
+  ['mPlaca','mTipo','mCapacidade'].forEach(id=>document.getElementById(id).value='');
+  fecharModal('modalVeiculo');
+  salvar();
+  renderVeiculos();
+}
+
+function salvarMotorista() {
+  const nome = document.getElementById('mNome').value.trim();
+  if (!nome) { alert('Informe o nome.'); return; }
+  motoristas.push({ id: Date.now(), nome, cnh: document.getElementById('mCNH').value, telefone: document.getElementById('mTelefone').value });
+  ['mNome','mCNH','mTelefone'].forEach(id=>document.getElementById(id).value='');
+  fecharModal('modalMotorista');
+  salvar();
+  renderMotoristas();
+}
+
+// ─── RENDER CONTRATOS ────────────────────────────────────────────
+function renderContratos() {
+  document.getElementById('headerSub').textContent = contratos.length+' contrato(s) cadastrado(s)';
+  const cardsEl = document.getElementById('contratosCards');
+  const tabelaEl = document.getElementById('contratosTabela');
+
+  if (!contratos.length) {
+    cardsEl.innerHTML='';
+    tabelaEl.innerHTML=`<div class="empty">Nenhum contrato cadastrado. Clique em "+ Novo Contrato".</div>`;
+    return;
+  }
+
+  // Cards resumo
+  const totalMeta     = contratos.reduce((a,c)=>a+c.metaSacas,0);
+  const totalEntregue = contratos.reduce((a,c)=>a+sacasEntreguesContrato(c.numero),0);
+  const totalRestante = totalMeta - totalEntregue;
+  const pctGeral = totalMeta>0 ? Math.round(totalEntregue/totalMeta*100) : 0;
+  cardsEl.innerHTML = `
+    ${card('📋','Total de Contratos',contratos.length,'contratos','#f59e0b')}
+    ${card('🎯','Meta Total',totalMeta.toLocaleString('pt-BR'),'sacas','#3b82f6')}
+    ${card('✅','Total Entregue',totalEntregue.toLocaleString('pt-BR'),'sacas','#22c55e')}
+    ${card('⏳','Total Restante',totalRestante.toLocaleString('pt-BR'),'sacas','#f97316')}
+    ${card('📈','% Cumprido',pctGeral,'%','#a855f7')}
+  `;
+
+  // Tabela
+  const rows = contratos.map(c=>{
+    const entregue = sacasEntreguesContrato(c.numero);
+    const restante = c.metaSacas - entregue;
+    const pct = Math.min(100, entregue/c.metaSacas*100);
+    const cor = pct >= 100 ? '#ef4444' : pct >= 90 ? '#f59e0b' : '#22c55e';
+    const statusTag = pct>=100
+      ? `<span style="background:#3b0000;color:#ef4444;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700">⛔ Esgotado</span>`
+      : pct>=90
+      ? `<span style="background:#3b2000;color:#f59e0b;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700">⚠️ Quase</span>`
+      : `<span style="background:#14532d;color:#4ade80;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700">✅ Em andamento</span>`;
+    const barraHtml = `<div style="background:#1e2d3d;border-radius:4px;height:8px;width:120px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:8px"><div style="height:100%;width:${pct}%;background:${cor};border-radius:4px"></div></div>`;
+    return `<tr>
+      <td><span style="color:#f59e0b;font-family:monospace;font-weight:700">${c.numero}</span></td>
+      <td>${c.armazem}</td>
+      <td style="color:#3b82f6;font-weight:700">${c.metaSacas.toLocaleString('pt-BR')} sc</td>
+      <td style="color:#22c55e;font-weight:700">${entregue.toLocaleString('pt-BR')} sc</td>
+      <td style="color:${cor};font-weight:700">${restante>0?restante.toLocaleString('pt-BR')+' sc':'—'}</td>
+      <td><span style="color:${cor};font-weight:700">${pct.toFixed(1)}%</span>${barraHtml}</td>
+      <td>${statusTag}</td>
+      <td>${c.dataFim?fmtData(c.dataFim):'—'}</td>
+      <td>${c.obs||'—'}</td>
+      <td><button class="btn-danger" onclick="excluirContrato(${c.id})">Excluir</button></td>
+    </tr>`;
+  }).join('');
+  tabelaEl.innerHTML=`<table><thead><tr>
+    <th>Nº Contrato</th><th>Armazém</th><th>Meta (sc)</th><th>Entregue</th><th>Restante</th><th>Progresso</th><th>Status</th><th>Vencimento</th><th>Obs.</th><th>Ação</th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function excluirContrato(id){
+  const c=contratos.find(x=>x.id===id);
+  if(!confirm(`Excluir contrato "${c?.numero}"? As viagens vinculadas não serão excluídas.`))return;
+  contratos=contratos.filter(x=>x.id!==id); salvar(); renderContratos();
+}
+
+function abrirModalContrato(){
+  ['cNumero','cMetaSacas','cMetaKg','cDataInicio','cDataFim','cObs'].forEach(id=>document.getElementById(id).value='');
+  const sel=document.getElementById('cArmazem');
+  sel.innerHTML='<option value="">Selecione o armazém</option>'+
+    armazens.map(a=>`<option value="${a.nome}">${a.nome}${a.cidade?' – '+a.cidade:''}</option>`).join('');
+  document.getElementById('modalContrato').classList.add('open');
+}
+
+function calcMetaKg(){
+  const sc=Number(document.getElementById('cMetaSacas').value)||0;
+  document.getElementById('cMetaKg').value = sc>0 ? sc*60 : '';
+}
+
+function salvarContrato(){
+  const numero=document.getElementById('cNumero').value.trim();
+  const meta  =Number(document.getElementById('cMetaSacas').value)||0;
+  if(!numero){alert('Informe o número do contrato.');return;}
+  if(!meta){alert('Informe a meta em sacas.');return;}
+  if(contratos.find(c=>c.numero===numero)){alert('Já existe um contrato com este número.');return;}
+  contratos.push({
+    id:Date.now(), numero, metaSacas:meta,
+    armazem: document.getElementById('cArmazem').value,
+    dataInicio: document.getElementById('cDataInicio').value,
+    dataFim:    document.getElementById('cDataFim').value,
+    obs:        document.getElementById('cObs').value,
+    status:     'Ativo',
+  });
+  fecharModal('modalContrato'); salvar(); renderContratos();
+}
+
+// ─── EXPORTAR EXCEL ──────────────────────────────────────────────
+function exportarExcel() {
+  if (!viagens.length) { alert('Nenhuma viagem para exportar.'); return; }
+
+  const dados = viagens.map((v,i)=>({
+    '#': i+1,
+    'Nota Fiscal': v.notaFiscal,
+    'Placa': v.placa,
+    'Motorista': v.motorista,
+    'Talhão / Gleba': v.talhao||'—',
+    'Armazém': v.armazem,
+    'Peso Bruto (kg)': Number(v.pesoBruto)||0,
+    'Peso Líquido (kg)': Number(v.pesoLiquido)||0,
+    'Tara (kg)': (Number(v.pesoBruto)||0)-(Number(v.pesoLiquido)||0),
+    'Umidade (%)': Number(v.umidade)||0,
+    'Desconto (%)': Number(v.desconto)||0,
+    'Líq. c/ Desconto (kg)': Number(v.pesoLiqDesconto)||0,
+    'Contrato': v.contrato||'—',
+    'Observação': v.obs||'—',
+    'Data Descarga': fmtData(v.dataDescarga),
+    'Status': v.status,
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(dados);
+  ws['!cols'] = [{wch:4},{wch:14},{wch:12},{wch:22},{wch:16},{wch:32},{wch:16},{wch:16},{wch:12},{wch:12},{wch:12},{wch:20},{wch:14},{wch:12}];
+
+  const totalBruto = dados.reduce((a,r)=>a+r['Peso Bruto (kg)'],0);
+  const totalLiq   = dados.reduce((a,r)=>a+r['Peso Líquido (kg)'],0);
+  const totalLiqDesc = dados.reduce((a,r)=>a+r['Líq. c/ Desconto (kg)'],0);
+  const resumo = [
+    {'Descrição':'TOTAL DE VIAGENS','Valor':dados.length},
+    {'Descrição':'PESO BRUTO TOTAL (kg)','Valor':totalBruto},
+    {'Descrição':'PESO LÍQUIDO TOTAL (kg)','Valor':totalLiq},
+    {'Descrição':'TARA TOTAL (kg)','Valor':totalBruto-totalLiq},
+    {'Descrição':'LÍQUIDO C/ DESCONTO TOTAL (kg)','Valor':totalLiqDesc},
+  ];
+  const ws2 = XLSX.utils.json_to_sheet(resumo);
+  ws2['!cols'] = [{wch:32},{wch:20}];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Viagens Milho');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Resumo');
+
+  // Aba Contratos
+  if (contratos.length) {
+    const dadosContratos = contratos.map(c=>{
+      const entregue = sacasEntreguesContrato(c.numero);
+      const restante = c.metaSacas - entregue;
+      const pct = c.metaSacas>0 ? Number((entregue/c.metaSacas*100).toFixed(1)) : 0;
+      return { 'Nº Contrato': c.numero, 'Armazém': c.armazem, 'Meta (sc)': c.metaSacas, 'Meta (kg)': c.metaSacas*60, 'Entregue (sc)': entregue, 'Restante (sc)': restante>0?restante:0, '% Cumprido': pct, 'Início': fmtData(c.dataInicio), 'Vencimento': fmtData(c.dataFim), 'Obs': c.obs||'' };
+    });
+    const wsCont = XLSX.utils.json_to_sheet(dadosContratos);
+    wsCont['!cols'] = [{wch:18},{wch:28},{wch:12},{wch:14},{wch:14},{wch:14},{wch:12},{wch:14},{wch:14},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, wsCont, 'Contratos');
+  }
+
+  // Aba Armazéns
+  const dadosArmazens = armazens.map(a=>({ 'Nome': a.nome, 'Cidade/UF': a.cidade||'—', 'Desconto (%)': a.desconto, 'Sem Desconto?': a.desconto===0?'Sim':'Não', 'Obs': a.obs||'' }));
+  if (dadosArmazens.length) {
+    const ws4 = XLSX.utils.json_to_sheet(dadosArmazens);
+    ws4['!cols'] = [{wch:28},{wch:20},{wch:14},{wch:14},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, ws4, 'Armazéns');
+  }
+
+  // Aba Glebas
+  const dadosGlebas = glebas.map(g => {
+    const vgs = viagens.filter(v=>v.talhao===g.nome);
+    const kg  = vgs.reduce((a,v)=>a+Number(v.pesoLiquido||0),0);
+    const scs = Math.round(kg/60);
+    const media = (g.area > 0 && kg > 0) ? Number(((kg/60000)/g.area).toFixed(1)) : 0;
+    return { 'Gleba/Talhão': g.nome, 'Cultura': g.cultura, 'Área (ha)': g.area, 'Prod. Líq. (kg)': kg, 'Sacas (60kg)': scs, 'Média (sc/ha)': media, 'Viagens': vgs.length, 'Obs': g.obs||'' };
+  });
+  if (dadosGlebas.length) {
+    const ws3 = XLSX.utils.json_to_sheet(dadosGlebas);
+    ws3['!cols'] = [{wch:18},{wch:16},{wch:10},{wch:16},{wch:14},{wch:14},{wch:10},{wch:20}];
+    XLSX.utils.book_append_sheet(wb, ws3, 'Glebas');
+  }
+
+  const hoje = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  XLSX.writeFile(wb, `Colheita_Milho_${hoje}.xlsx`);
+}
+
+function limparDados() {
+  if (!confirm('Atenção: isso apagará TODOS os dados salvos. Deseja continuar?')) return;
+  localStorage.removeItem('agro_veiculos');
+  localStorage.removeItem('agro_motoristas');
+  localStorage.removeItem('agro_viagens');
+  localStorage.removeItem('agro_glebas');
+  localStorage.removeItem('agro_armazens');
+  localStorage.removeItem('agro_contratos');
+  veiculos   = [...DEFAULT_VEICULOS];
+  motoristas = [...DEFAULT_MOTORISTAS];
+  viagens    = [...DEFAULT_VIAGENS];
+  glebas     = [...DEFAULT_GLEBAS];
+  armazens   = [...DEFAULT_ARMAZENS];
+  contratos  = [...DEFAULT_CONTRATOS];
+  renderDashboard();
+}
+
+// Fechar modal clicando fora
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+// Init
+renderDashboard();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(r => console.log('SW registered:', r.scope))
+      .catch(e => console.log('SW error:', e));
+  });
+}
+
+// PWA install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('btnInstalar').style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('btnInstalar').style.display = 'none';
+  deferredPrompt = null;
+});
+function instalarApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+}
+</script>
+</body>
+</html>

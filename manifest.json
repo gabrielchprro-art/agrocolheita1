@@ -1,0 +1,29 @@
+{
+  "name": "AgroColheita",
+  "short_name": "AgroColheita",
+  "description": "Dashboard de colheita de milho — viagens, contratos e glebas",
+  "start_url": "./AgroColheita.html",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#f59e0b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": [
+    "productivity",
+    "agriculture"
+  ]
+}
